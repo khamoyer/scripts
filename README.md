@@ -1,2 +1,2 @@
 # scripts
-Any kind of scripts
+synchronous shoping from hackerrank
