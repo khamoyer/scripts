@@ -120,7 +120,8 @@ int removeRootHeap( Vector *vector )
     return result; 
 }
 
-#define FullLoad ((1<<FishCount) - 1);
+#define FullLoad ((1<<FishCount) - 1)
+#define NodesCount CitiesCount*(FullLoad+1)
 Vector *FishOccurrence;
 Vector *Distances;
 Vector *Neighbourhood;
@@ -180,13 +181,12 @@ int calculateShortestPath( int startNode, int endNode )
     return result;
 }
 
-int main() 
+void readInput()
 {
-    freopen("sample.txt", "r", stdin);
     scanf("%d %d %d", &CitiesCount, &RoadsCount, &FishCount);
     FishOccurrence = createVector();
-    Distances = malloc(sizeof(Vector)*(CitiesCount+1));
-    Neighbourhood = malloc(sizeof(Vector)*(CitiesCount+1));
+    Distances = malloc(sizeof(Vector)*(NodesCount+1));
+    Neighbourhood = malloc(sizeof(Vector)*(NodesCount+1));
 
     for(int city = 0; city < CitiesCount; city++)
     {
@@ -210,6 +210,33 @@ int main()
         addToVector( &Neighbourhood[city_2], city_1);
         addToVector( &Distances[city_1], time);
         addToVector( &Distances[city_2], time);        
+    }
+}
+
+void generateLevel( int flag )
+{
+    int node = NodesCount - ( flag * CitiesCount ) - CitiesCount + 1;
+    for(int i = node; i<node+CitiesCount; i++)
+    {
+        int ancestor = ((i-1) % CitiesCount) + 1;
+        //printf("- %d %d\n", i, ancestor);
+        addToVector( FishOccurrence, FishOccurrence->array[ancestor] );//should be corrected by flag                            
+        //add vertical zero connections
+    }
+    // copy all roads
+    // addToVector( &Neighbourhood[city_1], city_2);
+    // addToVector( &Neighbourhood[city_2], city_1);
+    // addToVector( &Distances[city_1], time);
+    // addToVector( &Distances[city_2], time);
+}
+
+int main() 
+{
+    freopen("sample.txt", "r", stdin);
+    readInput();
+    for(int i=FullLoad - 1; i>=0; i--)
+    {
+        generateLevel( i );
     }
 
     printf("%d \n", calculateShortestPath( 1, CitiesCount));
