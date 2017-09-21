@@ -120,55 +120,106 @@ int removeRootHeap( Vector *vector )
     return result; 
 }
 
-//test
+#define FullLoad ((1<<FishCount) - 1);
+Vector *FishOccurrence;
+Vector *Distances;
+Vector *Neighbourhood;
+int CitiesCount;
+int RoadsCount;
+int FishCount;
 
-int validateHeap( Vector *vector )
+//dijkstra
+
+int *DijkstraDistances;
+int compareForClosest( int child, int parent )
 {
-    int result = 1;
-    for(int position = vector->nextPosition; position > 1; position--)
+    return DijkstraDistances[child] < DijkstraDistances[parent] ? 1 : 0;
+}
+
+int calculateShortestPath( int startNode, int endNode )
+{
+    DijkstraDistances = malloc(sizeof(int)*(CitiesCount+1));
+    int *predecessors = malloc(sizeof(int)*(CitiesCount+1));
+    int *visited = malloc(sizeof(int)*(CitiesCount+1));
+    for(int i = 0; i <= CitiesCount; i++)
     {
-        if( (*vector->comparer)( vector->array[position-1], vector->array[position/2-1] ) )
-        {
-            result = 0;
-            printf("\nheap is not correct\n");
-            break;
-        }
+        DijkstraDistances[i] = 100000000;
+        predecessors[i] = 0;
+        visited[i] = 0;
     }
+    Vector *heap = createVector();
+    heap->comparer = compareForClosest;
+    addToHeap( heap, startNode );
+    DijkstraDistances[startNode] = 0;
+    visited[startNode] = 1;
+    int current = startNode;
+    while( heap->nextPosition > 0 && current != endNode )
+    {      
+        current = removeRootHeap( heap );
+        for(int i=0; i<Neighbourhood[current].nextPosition; i++ )
+        {
+            int neighbour = Neighbourhood[current].array[i];
+            if( DijkstraDistances[neighbour] > DijkstraDistances[current] + Distances[current].array[i] )
+            {
+                DijkstraDistances[neighbour] = DijkstraDistances[current] + Distances[current].array[i];
+                predecessors[neighbour] = current;
+            }
+            if(visited[neighbour] == 0)
+            {
+                addToHeap( heap, neighbour );
+                visited[neighbour] = 1;
+            }
+        }
+
+    }
+    int result = DijkstraDistances[endNode];
+    free( DijkstraDistances );
+    free( predecessors );
+    free( visited );
+    deleteVector( heap );
     return result;
 }
 
-void testHeap()
+int main() 
 {
-    time_t tt;
-    int initValue = time(&tt);
-    srand(initValue);
-    int count = rand()%1000 + 10;
-    Vector *vector = createVector();
-    for(int i=0; i<count; i++)
+    freopen("sample.txt", "r", stdin);
+    scanf("%d %d %d", &CitiesCount, &RoadsCount, &FishCount);
+    FishOccurrence = createVector();
+    Distances = malloc(sizeof(Vector)*(CitiesCount+1));
+    Neighbourhood = malloc(sizeof(Vector)*(CitiesCount+1));
+
+    for(int city = 0; city < CitiesCount; city++)
     {
-        addToVector(vector, rand()%1000);
+        int fishes;
+        scanf("%d",&fishes);
+        int fishLoad = 0;
+        for(int i = 0; i < fishes; i++)
+        {
+            int fish;
+            scanf("%d",&fish);
+            fish--;
+            fishLoad |= 1<<fish;
+        }
+        addToVector( FishOccurrence, fishLoad );
+    }
+    for(int i = 0; i < RoadsCount; i++)
+    {
+        int city_1, city_2, time;
+        scanf("%d %d %d",&city_1,&city_2,&time);
+        addToVector( &Neighbourhood[city_1], city_2);
+        addToVector( &Neighbourhood[city_2], city_1);
+        addToVector( &Distances[city_1], time);
+        addToVector( &Distances[city_2], time);        
     }
 
-    Vector *heap = createVector();
-    for(int city = 0; city < vector->nextPosition; city++)
-    {
-        addToHeap(heap, vector->array[city]);
-    }
-    for(int city = 0; city < vector->nextPosition; city++)
-    {
-        vector->array[city] = heap->array[city];
-    }
-    
-    validateHeap(vector);
-    for(int city = 0, count=vector->nextPosition-2; city < count; city++)
-    {
-        int removed = removeRootHeap(vector);
-        validateHeap(vector);
-    }
-}
-
-int main()
-{
-    testHeap();
+    printf("%d \n", calculateShortestPath( 1, CitiesCount));
+    // for(int i = 1; i <= CitiesCount; i++)
+    // {
+    //     printf("\ncity %d: ", i);
+    //     for(int y = 0; y <= Distances[i].nextPosition; y++)
+    //     {
+    //         printf("%d %d  ", Neighbourhood[i].array[y], Distances[i].array[y]);
+    //     }
+    // }
     return 0;
 }
