@@ -137,6 +137,23 @@ int compareForClosest( int child, int parent )
     return DijkstraDistances[child] < DijkstraDistances[parent] ? 1 : 0;
 }
 
+int getNotVisited( Vector *heap, int *visited )
+{
+    int result = removeRootHeap( heap );
+    if( result >= 0 )
+    {
+        if( visited[result]==1 )
+        {
+            result = getNotVisited( heap, visited );
+        }
+        else
+        {
+            visited[result] = 1;            
+        }
+    }
+    return result;
+}
+
 int calculateShortestPath( int startNode, int endNode )
 {
     DijkstraDistances = malloc(sizeof(int)*(CitiesCount+1));
@@ -152,11 +169,10 @@ int calculateShortestPath( int startNode, int endNode )
     heap->comparer = compareForClosest;
     addToHeap( heap, startNode );
     DijkstraDistances[startNode] = 0;
-    visited[startNode] = 1;
     int current = startNode;
     while( heap->nextPosition > 0 && current != endNode )
     {      
-        current = removeRootHeap( heap );
+        current = getNotVisited( heap, visited );
         for(int i=0; i<Neighbourhood[current].nextPosition; i++ )
         {
             int neighbour = Neighbourhood[current].array[i];
@@ -165,11 +181,7 @@ int calculateShortestPath( int startNode, int endNode )
                 DijkstraDistances[neighbour] = DijkstraDistances[current] + Distances[current].array[i];
                 predecessors[neighbour] = current;
             }
-            if(visited[neighbour] == 0)
-            {
-                addToHeap( heap, neighbour );
-                visited[neighbour] = 1;
-            }
+            addToHeap( heap, neighbour );
         }
 
     }
