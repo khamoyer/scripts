@@ -225,21 +225,47 @@ void readInput()
     }
 }
 
+void copyOriginalRoads( int city )
+{
+    for( int current=1; current<=CitiesCount; current++, city++ )
+    {
+        for( int i = 0; i<Neighbourhood[current].nextPosition; i++ )
+        {
+            addToVector( &Neighbourhood[city], Neighbourhood[current].array[i]);
+            addToVector( &Distances[city], Distances[current].array[i]);
+        }
+    }
+}
+
+void addVerticalConnections( int flag, int node )
+{
+    for( int i = node - CitiesCount; i > 0; i-=CitiesCount )
+    {
+        int fishLoad = FishOccurrence->array[i];
+        if( (fishLoad + flag) == FullLoad )
+        {
+            addToVector( &Neighbourhood[node], i);
+            addToVector( &Neighbourhood[i], node);
+            addToVector( &Distances[node], 0);
+            addToVector( &Distances[i], 0);
+        }
+    }
+}
+
 void generateLevel( int flag )
 {
     int node = NodesCount - ( flag * CitiesCount ) - CitiesCount + 1;
+    copyOriginalRoads( node );
     for(int i = node; i<node+CitiesCount; i++)
     {
         int ancestor = ((i-1) % CitiesCount) + 1;
         //printf("- %d %d\n", i, ancestor);
-        addToVector( FishOccurrence, FishOccurrence->array[ancestor] );//should be corrected by flag                            
+        int fishLoad = FishOccurrence->array[ancestor];
+        addToVector( FishOccurrence, fishLoad & flag );
         //add vertical zero connections
+        //for current flag + parent = full load;
+        addVerticalConnections( flag, node );
     }
-    // copy all roads
-    // addToVector( &Neighbourhood[city_1], city_2);
-    // addToVector( &Neighbourhood[city_2], city_1);
-    // addToVector( &Distances[city_1], time);
-    // addToVector( &Distances[city_2], time);
 }
 
 int main() 
@@ -252,13 +278,13 @@ int main()
     }
 
     printf("%d \n", calculateShortestPath( 1, CitiesCount));
-    // for(int i = 1; i <= CitiesCount; i++)
-    // {
-    //     printf("\ncity %d: ", i);
-    //     for(int y = 0; y <= Distances[i].nextPosition; y++)
-    //     {
-    //         printf("%d %d  ", Neighbourhood[i].array[y], Distances[i].array[y]);
-    //     }
-    // }
+    for(int i = 1; i <= NodesCount; i++)
+    {
+        printf("\ncity %d: ", i);
+        for(int y = 0; y < Distances[i].nextPosition; y++)
+        {
+            printf("%d %d  ", Neighbourhood[i].array[y], Distances[i].array[y]);
+        }
+    }
     return 0;
 }
