@@ -3,14 +3,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#define D(x) x
+//test 12: 1268
 
 typedef struct
 {
     int *array;
     int nextPosition;
     int length;
-    int (*comparer)(int, int);
 } Vector;
+
+typedef struct
+{
+    Vector *elements;
+    int *positions;
+    int (*comparer)(int, int);
+} Heap;
 
 int heapCompare( int child, int parent )
 {
@@ -22,7 +30,6 @@ Vector *initVector( Vector *vector )
     vector->length = 2;
     vector->nextPosition = 0;
     vector->array = malloc(sizeof(int)*vector->length);
-    vector->comparer = heapCompare;
     return vector;
 }
 
@@ -36,6 +43,22 @@ void deleteVector(Vector *vector)
 {
     free(vector->array);
     free(vector);
+}
+
+Heap *createHeap( int max )
+{
+    Heap *result = malloc(sizeof(Heap));
+    result->elements = createVector();
+    result->positions = malloc(sizeof(int)*max);
+    result->comparer = heapCompare;
+    return result;
+}
+
+void deleteHeap( Heap *heap )
+{
+    deleteVector( heap->elements );
+    free( heap->positions );
+    free(heap);
 }
 
 void addToVector(Vector *vector, int value)
@@ -59,28 +82,36 @@ void addToVector(Vector *vector, int value)
     vector->nextPosition++;
 }
 
-void swap( int *first, int *second)
+void swap( Heap *heap, int firstIndex, int secondIndex)
 {
-    int temp = *first;
-    *first = *second; 
-    *second = temp;
+    int temp = heap->elements->array[firstIndex];
+    heap->elements->array[firstIndex] = heap->elements->array[secondIndex]; 
+    heap->elements->array[secondIndex] = temp;
+    heap->positions[heap->elements->array[firstIndex]] = secondIndex;
+    heap->positions[heap->elements->array[secondIndex]] = firstIndex;
 }
 
-void addToHeap( Vector *vector, int value )
+void upHeap( Heap *heap, int value )
 {
-    addToVector(vector, value);
-    int position = vector->nextPosition;
+    int position = heap->positions[value] + 1;
     while( position > 1 
-        && (*vector->comparer)( vector->array[position-1], vector->array[position/2-1] ) )
+        && (*heap->comparer)( heap->elements->array[position-1], heap->elements->array[position/2-1] ) )
     {
-        swap(vector->array + position/2 - 1, vector->array + position - 1);
+        swap(heap, position/2 - 1, position - 1);
         position /= 2;
     }
 }
 
-int getNumberOfChildrenHeap( Vector *vector, int position )
+void addToHeap( Heap *heap, int value )
 {
-    int result = (vector->nextPosition + 1) - (position<<1);
+    heap->positions[value] = heap->elements->nextPosition;    
+    addToVector(heap->elements, value);
+    upHeap( heap, value );
+}
+
+int getNumberOfChildrenHeap( Heap *heap, int position )
+{
+    int result = (heap->elements->nextPosition + 1) - (position<<1);
     if( result > 2 )
     {
         result = 2;
@@ -92,40 +123,40 @@ int getNumberOfChildrenHeap( Vector *vector, int position )
     return result;
 }
 
-void downHeap( Vector *vector )
+void downHeap( Heap *heap )
 {
     int position = 1;
     while( 1 )
     {
         int childPosition = position<<1;
-        int childrenCount = getNumberOfChildrenHeap(vector, position);
+        int childrenCount = getNumberOfChildrenHeap(heap, position);
         if( childrenCount == 0 )
         {
             break;
         }
         else if( childrenCount == 2)
         {
-            childPosition += (*vector->comparer)( vector->array[childPosition], vector->array[childPosition-1] );
+            childPosition += (*heap->comparer)( heap->elements->array[childPosition], heap->elements->array[childPosition-1] );
         }
 
-        if(!(*vector->comparer)(vector->array[childPosition-1], vector->array[position-1]))
+        if(!(*heap->comparer)(heap->elements->array[childPosition-1], heap->elements->array[position-1]))
         {
             break;
         }
-        swap(&vector->array[childPosition-1], &vector->array[position-1]);
+        swap( heap, childPosition-1, position-1);
         position = childPosition;
     }
 }
 
-int removeRootHeap( Vector *vector )
+int removeRootHeap( Heap *heap )
 {
     int result = -1;
-    if(vector->nextPosition > 0)
+    if(heap->elements->nextPosition > 0)
     {
-        result = vector->array[0];
-        vector->nextPosition--;
-        vector->array[0] = vector->array[vector->nextPosition];
-        downHeap( vector );
+        result = heap->elements->array[0];
+        heap->elements->nextPosition--;
+        heap->elements->array[0] = heap->elements->array[heap->elements->nextPosition];
+        downHeap( heap );
     }
     return result; 
 }
@@ -147,40 +178,23 @@ int compareForClosest( int child, int parent )
     return DijkstraDistances[child] < DijkstraDistances[parent] ? 1 : 0;
 }
 
-int getNotVisited( Vector *heap, int *visited )
-{
-    int result = removeRootHeap( heap );
-    if( result >= 0 )
-    {
-        if( visited[result]==1 )
-        {
-            result = getNotVisited( heap, visited );
-        }
-        else
-        {
-            visited[result] = 1;            
-        }
-    }
-    return result;
-}
-
 void calculateShortestPaths( int startNode )
 {
     DijkstraDistances = malloc(sizeof(int)*(NodesCount+1));
-    int *visited = malloc(sizeof(int)*(NodesCount+1));
+    int *added = malloc(sizeof(int)*(NodesCount+1));
     for(int i = 0; i <= NodesCount; i++)
     {
         DijkstraDistances[i] = 100000000;
-        visited[i] = 0;
+        added[i] = 0;
     }
-    Vector *heap = createVector();
+    Heap *heap = createHeap(NodesCount+1);
     heap->comparer = compareForClosest;
     addToHeap( heap, startNode );
     DijkstraDistances[startNode] = 0;
-    int current = startNode;
-    while( heap->nextPosition > 0 )
+    added[startNode]=1;
+    while( heap->elements->nextPosition > 0 )
     {      
-        current = getNotVisited( heap, visited );
+        int current = removeRootHeap( heap );
         if(current > 0 )
         {
             for(int i=0; i<Neighbourhood[current].nextPosition; i++ )
@@ -189,13 +203,18 @@ void calculateShortestPaths( int startNode )
                 if( DijkstraDistances[neighbour] > DijkstraDistances[current] + Distances[current].array[i] )
                 {
                     DijkstraDistances[neighbour] = DijkstraDistances[current] + Distances[current].array[i];
+                    upHeap( heap, neighbour );
                 }
-                addToHeap( heap, neighbour );
+                if( added[neighbour] == 0 )
+                {
+                    addToHeap( heap, neighbour );
+                    added[neighbour] = 1;
+                }
             }
         }
     }
-    free( visited );
-    deleteVector( heap );
+    free( added );
+    deleteHeap( heap );
 }
 
 void readInput()
@@ -311,13 +330,5 @@ int main()
     }
     calculateShortestPaths( 1 );
     printf("%d", findBestResult());
-    // for(int i = 1; i <= NodesCount; i++)
-    // {
-    //     printf("\ncity %d fish %d: ", i, FishOccurrence->array[i]);
-    //     for(int y = 0; y < Distances[i].nextPosition; y++)
-    //     {
-    //         printf("%d %d  ", Neighbourhood[i].array[y], Distances[i].array[y]);
-    //     }
-    // }
     return 0;
 }
