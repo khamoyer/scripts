@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "heapsort.h": "c",
+        "stdio.h": "c",
+        "string.h": "c"
+    }
+}
