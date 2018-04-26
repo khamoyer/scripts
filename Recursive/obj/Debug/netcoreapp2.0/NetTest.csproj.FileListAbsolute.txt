@@ -1,0 +1,10 @@
+/home/sx/git/scripts/NetCore/NetTest/obj/Debug/netcoreapp2.0/NetTest.csproj.CoreCompileInputs.cache
+/home/sx/git/scripts/NetCore/NetTest/obj/Debug/netcoreapp2.0/NetTest.AssemblyInfoInputs.cache
+/home/sx/git/scripts/NetCore/NetTest/obj/Debug/netcoreapp2.0/NetTest.AssemblyInfo.cs
+/home/sx/git/scripts/NetCore/NetTest/obj/Debug/netcoreapp2.0/NetTest.dll
+/home/sx/git/scripts/NetCore/NetTest/obj/Debug/netcoreapp2.0/NetTest.pdb
+/home/sx/git/scripts/NetCore/NetTest/bin/Debug/netcoreapp2.0/NetTest.deps.json
+/home/sx/git/scripts/NetCore/NetTest/bin/Debug/netcoreapp2.0/NetTest.runtimeconfig.json
+/home/sx/git/scripts/NetCore/NetTest/bin/Debug/netcoreapp2.0/NetTest.runtimeconfig.dev.json
+/home/sx/git/scripts/NetCore/NetTest/bin/Debug/netcoreapp2.0/NetTest.dll
+/home/sx/git/scripts/NetCore/NetTest/bin/Debug/netcoreapp2.0/NetTest.pdb
