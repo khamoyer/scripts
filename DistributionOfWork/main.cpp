@@ -4,9 +4,9 @@
 #include "judge.h"
 #include <vector>
 using namespace std;
-bool shouldLog = false;
 
-void sortVector(vector<int> &v, int count, int range) {
+void sortVector(vector<int> &v, int range) {
+	int count = v.size();
 	int *counter = new int[range];
 	for(int i=0; i < range; i++) 
 		counter[i] = -1;
@@ -17,24 +17,7 @@ void sortVector(vector<int> &v, int count, int range) {
 		if(counter[s] > -1)
 			v.push_back(s);
 	}
-	delete counter;
-}
-
-void sortWorkers(int *source, int *target, int *indexOfSource, int count, int range) {
-	int *counter = new int[range];
-	for(int i=0; i < range; i++) 
-		counter[i] = -1;
-	for(int i=0; i < count; i++)
-		counter[source[i]] = i;
-	
-	for(int s=0, t=0; s < range; s++) {
-		if(counter[s] > -1) {
-			target[t] = s;
-			indexOfSource[t] = counter[s];
-			t++;
-		}
-	}
-	delete counter;
+	delete[] counter;
 }
 
 class NaiveSolution : public ISolution {	
@@ -52,14 +35,13 @@ public:
 	Job jobs[70001];
 	int workers[100];
 	NaiveSolution() {
-		// for(int i=0; i<100; i++)
-		// 	workers[i] = -1;
+		for(int i=0; i<100; i++)
+		 	workers[i] = 0;
 		lastTime = 1;
 		addWorker(0, 1, 0);
 	}
 
 	int assignJob(int workerId) { //returns finishTime
-		//printf("assigning job for worker %d \n", workerId);
 		int parentId = workers[workerId];
 		if(parentId == 0)
 			parentId = workerId;
@@ -76,8 +58,6 @@ public:
 			i++;
 		}
 		if(bestJob > -1) {
-			if(shouldLog)
-				printf("assigning worker to job\n");
 			waitingJobs.erase(waitingJobs.begin() + idxOfBestJob);
 			jobs[bestJob].status.workerAssigned = workerId;
 			jobs[bestJob].status.finishTime = lastTime + jobs[bestJob].runtime;
@@ -86,75 +66,51 @@ public:
 		return -1;
 	}
 	void assignJobs() { //last time is current time
-		int orderedWorkers[100];
-		int indexOfWorkers[100];
-		int size = freeWorkers.size();
-		if(shouldLog) 
-			printf("before sorting\n");
-		sortWorkers(freeWorkers.data(), orderedWorkers, indexOfWorkers, size, 100);
-		if(shouldLog) {
-			printf("size %d %d\n", size);
-			for(int i=0; i < 18; i++)
-	 			printf("%d %d\n", orderedWorkers[i], indexOfWorkers[i]);
-			//exit(0);
-		}
-		for(int i=0; i < size; i++) {
-			int finish = assignJob(orderedWorkers[i]);
+		sortVector(freeWorkers, 100);
+		vector<int> busyWorkers;
+		for(int i=0, size = freeWorkers.size(); i < size; i++) {
+			int finish = assignJob(freeWorkers[i]);
 			if(finish > -1) {
-				if(shouldLog)
-					printf("1\n");
-				workersToBeFree[finish].push_back(orderedWorkers[i]);
-				if(shouldLog)
-					printf("2 size %d index %d\n", size, indexOfWorkers[i]);
-				freeWorkers.erase(freeWorkers.begin() + indexOfWorkers[i]);
-				if(shouldLog)
-					printf("3\n");
+				workersToBeFree[finish].push_back(freeWorkers[i]);
+				busyWorkers.push_back(i);
 			}
 		}
-		if(shouldLog)
-			printf("3\n");
+		//removing from the end
+		for(int i = busyWorkers.size() - 1; i >= 0; i--)
+			freeWorkers.erase(freeWorkers.begin() + busyWorkers[i]);
 	}
 	int processTo(int time) {
 		int p=9;
 		//iterate from lastTime to timeTo
 		while(lastTime <= time) {
+			int oldSize = freeWorkers.size();
 			for(int worker : workersToBeFree[lastTime])
 				freeWorkers.push_back(worker);
-			assignJobs();
+			if(freeWorkers.size() > oldSize)
+				assignJobs();
 			lastTime++;
 		}
 	}
 
 	virtual void addWorker(int time, int id, int seniorId)
 	{
-		//printf("adding worker\n");
 		workers[id] = seniorId;
 		workersToBeFree[time].push_back(id);
 		processTo(time);
-		printf("add Worker    -----------------  %d %d %d\n", time, id, seniorId);
+		//printf("add Worker    -----------------  %d %d %d\n", time, id, seniorId);
 	}
 	virtual void addWork(int time, int workId, int workerId, int importance, int runtime) 
 	{
+		processTo(time-1);
 		jobs[workId] = { workerId, importance, runtime, {}};
 		waitingJobs.push_back(workId);
-		printf("adding work\n");
-		if(time == 99849) {
-			printf("shouldLog %d ---- turning on\n", shouldLog);
-			shouldLog = true;
-			for(int worker : freeWorkers) {
-				printf("%d ", worker);
-			}
-			printf("\n" );
-			//exit(0);
-		}
 		processTo(time);
-		printf("add Work %d %d %d %d %d\n", time, workId, workerId, importance, runtime);
+		//printf("add Work %d %d %d %d %d\n", time, workId, workerId, importance, runtime);
 	}
 	virtual Status getStatus(int time, int workId )
 	{
-		printf("getting status\n");
 		processTo(time);
-		printf("status %d %d: worker %d finished %d\n", time, workId, jobs[workId].status.workerAssigned, jobs[workId].status.finishTime);
+		//printf("status %d %d: worker %d finished %d\n", time, workId, jobs[workId].status.workerAssigned, jobs[workId].status.finishTime);
 		return jobs[workId].status;	
 	}
 };
@@ -162,17 +118,8 @@ public:
 //EfficientSolution solution;
 NaiveSolution naiveSsolution;
 
-#include<math.h>
 int main() {
-	//Judge::run(&naiveSsolution);
-	
-	//int source[] = {12, 3, 17, 2, 5, 13, 11, 10, 9, 7, 15, 4, 6, 14, 18, 20, 8, 16};
-	vector<int> v = {12, 3, 17, 2, 5, 13, 11, 10, 9, 7, 15, 4, 6, 14, 18, 20, 8, 16};
-	// int source[] = {12, 23, 1, 45, 13, 55};
-	// printf("6 & 100 \n");
-	sortVector(v, 18, 100);
-	for(int i=0; i < 18; i++)
-	 	printf("%d\n", v[i]);
+	Judge::run(&naiveSsolution);
 	return 0;
 }
 

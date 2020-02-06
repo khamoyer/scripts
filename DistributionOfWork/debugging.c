@@ -43,3 +43,26 @@
 // 	//printWorkersDepth(naiveSolution, 1);
 // 	printWorkersBredth(naiveSolution);
 // }
+
+// void sortWorkers(int *source, int *target, int *indexOfSource, int count, int range) {
+// 	int *counter = new int[range];
+// 	for(int i=0; i < range; i++) 
+// 		counter[i] = -1;
+// 	for(int i=0; i < count; i++)
+// 		counter[source[i]] = i;
+	
+// 	for(int s=0, t=0; s < range; s++) {
+// 		if(counter[s] > -1) {
+// 			target[t] = s;
+// 			indexOfSource[t] = counter[s];
+// 			t++;
+// 		}
+// 	}
+// 	delete counter;
+// }
+
+	
+	//vector<int> v = {12, 3, 17, 2, 5, 13, 11, 10, 9, 7, 15, 4, 6, 14, 18, 20, 8, 16};
+	// sortVector(v, 100);
+	// for(int i=0; i < 18; i++)
+	//  	printf("%d\n", v[i]);
