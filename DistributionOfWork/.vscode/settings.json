@@ -17,6 +17,7 @@
         "sstream": "cpp",
         "streambuf": "cpp",
         "utility": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "chrono": "cpp"
     }
 }

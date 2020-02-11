@@ -51,7 +51,7 @@ public:
 			if(jobs[job].workerId == workerId || jobs[job].workerId == parentId )
 				if(bestJob == -1
 					|| (jobs[job].importance == jobs[bestJob].importance && job < bestJob)
-					|| (jobs[job].importance < jobs[bestJob].importance)) 
+					|| (jobs[job].importance > jobs[bestJob].importance)) 
 				{
 					bestJob = job, idxOfBestJob = i;
 				}
@@ -83,10 +83,10 @@ public:
 		int p=9;
 		//iterate from lastTime to timeTo
 		while(lastTime <= time) {
-			int oldSize = freeWorkers.size();
 			for(int worker : workersToBeFree[lastTime])
 				freeWorkers.push_back(worker);
-			if(freeWorkers.size() > oldSize)
+			if(workersToBeFree[lastTime].size() > 0 //freeWorkers.size() > oldSize
+				|| lastTime == time)
 				assignJobs();
 			lastTime++;
 		}
@@ -95,13 +95,15 @@ public:
 	virtual void addWorker(int time, int id, int seniorId)
 	{
 		workers[id] = seniorId;
-		workersToBeFree[time].push_back(id);
+		//workersToBeFree[time].push_back(id);
+		processTo(time - 1);
+		freeWorkers.push_back(id);
 		processTo(time);
 		//printf("add Worker    -----------------  %d %d %d\n", time, id, seniorId);
 	}
 	virtual void addWork(int time, int workId, int workerId, int importance, int runtime) 
 	{
-		processTo(time-1);
+		processTo(time - 1);
 		jobs[workId] = { workerId, importance, runtime, {}};
 		waitingJobs.push_back(workId);
 		processTo(time);
@@ -116,10 +118,13 @@ public:
 };
 
 //EfficientSolution solution;
-NaiveSolution naiveSsolution;
+NaiveSolution naiveSolution;
 
 int main() {
-	Judge::run(&naiveSsolution);
+	Judge::run(&naiveSolution);
+	// Judge3::run(new NaiveSolution());
+	// Judge4::run(new NaiveSolution());
+	// Judge5::run(new NaiveSolution());
 	return 0;
 }
 

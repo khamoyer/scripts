@@ -66,3 +66,34 @@
 	// sortVector(v, 100);
 	// for(int i=0; i < 18; i++)
 	//  	printf("%d\n", v[i]);
+
+// void Judge3::run(ISolution *solution) {
+// 	auto start = high_resolution_clock::now();
+// 	solution->addWorker(2, 2, 1);
+// 	solution->addWorker(3, 3, 1);
+// 	solution->addWork(4, 1, 2, 24, 10);
+// 	solution->addWork(5, 2, 2, 13, 10);
+// 	solution->addWork(6, 3, 3, 25, 10);
+// 	showStatus(solution, 7, 1);
+// 	showStatus(solution, 8, 2);
+// 	showStatus(solution, 9, 3);
+// 	solution->addWork(10, 4, 1, 12, 10);
+// 	solution->addWork(11, 5, 1, 26, 10);
+// 	solution->addWork(12, 6, 1, 25, 10);
+// 	showStatus(solution, 13, 4);
+// 	showStatus(solution, 14, 5);
+// 	showStatus(solution, 15, 6);
+// 	solution->addWork(16, 7, 1, 2, 10);
+// 	solution->addWork(17, 8, 1, 22, 10);
+// 	solution->addWork(18, 9, 1, 21, 10);
+// 	showStatus(solution, 33, 4);
+// 	showStatus(solution, 34, 5);
+// 	showStatus(solution, 35, 6);
+// 	showStatus(solution, 36, 7);
+// 	showStatus(solution, 37, 8);
+// 	showStatus(solution, 38, 9);
+	
+// 	auto stop = high_resolution_clock::now();
+// 	auto duration = duration_cast<milliseconds>(stop - start);
+// 	printf("result: %d, duration: %d\n", result, duration);
+// }

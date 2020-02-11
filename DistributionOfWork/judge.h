@@ -16,3 +16,26 @@ public:
 	static void run(ISolution *solution);
 };
 
+class Judge2
+{
+public:
+	static void run(ISolution *solution);
+};
+
+class Judge3
+{
+public:
+	static void run(ISolution *solution);
+};
+
+class Judge4
+{
+public:
+	static void run(ISolution *solution);
+};
+
+class Judge5
+{
+public:
+	static void run(ISolution *solution);
+};
