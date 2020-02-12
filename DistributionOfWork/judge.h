@@ -1,3 +1,10 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <vector>
+#ifndef Judge_H
+#define Judge_H
+
 struct Status {
 	int finishTime;
 	int workerAssigned;
@@ -39,3 +46,5 @@ class Judge5
 public:
 	static void run(ISolution *solution);
 };
+
+#endif
