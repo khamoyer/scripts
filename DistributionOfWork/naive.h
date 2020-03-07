@@ -18,7 +18,7 @@ public:
 	NaiveSolution() {
 		for(int i=0; i<100; i++)
 		 	workers[i] = 0;
-		lastTime = 1;
+		lastTime = 0;
 		addWorker(0, 1, 0);
 	}
 	void sortVector(vector<int> &v, int range) {

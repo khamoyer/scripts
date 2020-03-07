@@ -20,7 +20,7 @@ public:
 	SemiNaiveSolution() {
 		for(int i=0; i<100; i++)
 		 	workers[i] = 0;
-		lastTime = 1;
+		lastTime = 0;
 		addWorker(0, 1, 0);
 	}
     void sortVector(vector<int> &v, int range) {
@@ -37,42 +37,46 @@ public:
         }
         delete[] counter;
     }
-	std::tuple<int, int> getBestJob(int workerId) {
+	struct BestJob {
+		int idx;
+		int job;
+	};
+	int compare(int job1, int job2) {
+		return (jobs[job1].importance == jobs[job2].importance && job1 < job2)
+				|| (jobs[job1].importance > jobs[job2].importance);
+	}
+	BestJob getBestJobIdx(int workerId) {
 		int bestJob = -1;
-		int i=0, idxOfBestJob=-1;
-		for(int job : workerJobs[workerId]) {
-			if(bestJob == -1
-				|| (jobs[job].importance == jobs[bestJob].importance && job < bestJob)
-				|| (jobs[job].importance > jobs[bestJob].importance)) 
-			{
-				bestJob = job, idxOfBestJob = i;
+		int i=0, idxOfBestJob = -1;
+		if(workerId > 0) {
+			for(int job : workerJobs[workerId]) {
+				if(bestJob == -1 || compare(job, bestJob)) 
+					bestJob = job, idxOfBestJob = i;
+				i++;
 			}
-			i++;
 		}
-		
-		return std:: make_tuple<int, int>(bestJob, idxOfBestJob);
+		return {idxOfBestJob, bestJob};
+	}
+	int assignJobCore(int workerId, vector<int> *workerJobs, BestJob bestJob) {
+		workerJobs->erase(workerJobs->begin() + bestJob.idx);
+		jobs[bestJob.job].status.workerAssigned = workerId;
+		jobs[bestJob.job].status.finishTime = lastTime + jobs[bestJob.job].runtime;
+		return jobs[bestJob.job].status.finishTime;
 	}
 	int assignJob(int workerId) { //returns finishTime
+		BestJob workerJob = getBestJobIdx(workerId);
 		int parentId = workers[workerId];
-		if(parentId == 0)
-			parentId = workerId;
-		int bestJob = -1;
-		int i=0, idxOfBestJob=-1;
-		for(int job : workerJobs[workerId]) {
-			if(bestJob == -1
-				|| (jobs[job].importance == jobs[bestJob].importance && job < bestJob)
-				|| (jobs[job].importance > jobs[bestJob].importance)) 
-			{
-				bestJob = job, idxOfBestJob = i;
-			}
-			i++;
+		BestJob parentJob = getBestJobIdx(parentId);
+		if(workerJob.job >= 0 && parentJob.job >= 0) {
+			if(compare(workerJob.job, parentJob.job))
+				return assignJobCore(workerId, &workerJobs[workerId], workerJob);	
+			else 
+				return assignJobCore(workerId, &workerJobs[parentId], parentJob);
 		}
-		if(bestJob > -1) {
-			waitingJobs.erase(waitingJobs.begin() + idxOfBestJob);
-			jobs[bestJob].status.workerAssigned = workerId;
-			jobs[bestJob].status.finishTime = lastTime + jobs[bestJob].runtime;
-			return jobs[bestJob].status.finishTime;
-		}
+		else if(workerJob.job >= 0 )
+			return assignJobCore(workerId, &workerJobs[workerId], workerJob);
+		else if(parentJob.job >= 0 )
+			return assignJobCore(workerId, &workerJobs[parentId], parentJob);
 		return -1;
 	}
 	void assignJobs() { //last time is current time

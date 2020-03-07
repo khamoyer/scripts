@@ -21,6 +21,7 @@ class Judge
 {
 public:
 	static void run(ISolution *solution);
+	static int runCore(ISolution *solution, int operations, long long s);
 };
 
 class Judge2

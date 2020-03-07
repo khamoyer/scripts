@@ -27,18 +27,16 @@ int pseudoRand() {
 int Workers = 1;
 int Works = 0;
 }
+void reset() {
+	Workers = 1;
+	Works = 0;
+}
 
-void Judge::run(ISolution *solution) {
+int Judge::runCore(ISolution *solution, int operations, long long s) {
+	reset();
+	seed = s;
+	auto start = high_resolution_clock::now();
 	int result = 0;
-	auto start = high_resolution_clock::now(); 
-	freopen(PathIN, "r" , stdin);
-	printf("%s\n", PathIN);
-	int operations;
-	scanf("%lld %d", &seed, &operations);
-	if(operations > 70000) {
-		printf("operations should be less or equal to 70000\n");
-		return;
-	}
 	for(int i=1, t=0; i <= operations; i++) {
 		int rand = pseudoRand();
 		//skip t
@@ -62,10 +60,24 @@ void Judge::run(ISolution *solution) {
 	}
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(stop - start);
+	printf("result: %d, duration: %d\n", result, duration);
+	return result;
+}
+
+void Judge::run(ISolution *solution) {
+	freopen(PathIN, "r" , stdin);
+	printf("%s\n", PathIN);
+	int operations;
+	long long s;
+	scanf("%lld %d", &s, &operations);
+	if(operations > 70000) {
+		printf("operations should be less or equal to 70000\n");
+		return;
+	}
+	int result = Judge::runCore(solution, operations, s);
 	int idx = Name[1] - '0';
 	if(result != Expected[idx])
-	printf("wrong, should be %d\n", Expected[idx]);
-	printf("result: %d, duration: %d\n", result, duration);
+		printf("wrong, should be %d\n", Expected[idx]);
 }
 
 int result = 0;
@@ -110,7 +122,7 @@ void Judge3::run(ISolution *solution) {
 	bool correct = s1.finishTime == 5 && s1.workerAssigned == 1
 		&& s2.finishTime == 8 && s2.workerAssigned == 2;
 	if(correct == false)
-		printf("J4 wrong\n");
+		printf("J3 wrong\n");
 
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(stop - start);
